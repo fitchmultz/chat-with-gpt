@@ -11,7 +11,7 @@
     "@mantine/notifications": "^5.10.5",
     "@mantine/spotlight": "^5.10.5",
     "@msgpack/msgpack": "^3.0.0-beta2",
-    "@reduxjs/toolkit": "^1.9.3",
+    "@reduxjs/toolkit": "^2.0.1",
     "broadcast-channel": "^4.20.2",
     "comlink": "^4.4.1",
     "events": "^3.3.0",

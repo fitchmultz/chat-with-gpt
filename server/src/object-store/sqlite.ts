@@ -38,7 +38,7 @@ export default class SQLiteObjectStore extends ObjectStore {
   }
 
   public async put (key: string, value: string, contentType: string): Promise<void> {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run('INSERT OR REPLACE INTO objects (key, value) VALUES (?, ?)', [key, value], (err: any) => {
         if (err) {
           reject(err)

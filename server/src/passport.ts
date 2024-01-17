@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import passport from 'passport'

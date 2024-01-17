@@ -13,10 +13,11 @@ const tableNames = {
 }
 
 export default class KnexDatabaseAdapter extends Database {
-  private readonly knex = KnexClient(this.knexConfig)
+  private readonly knex: Knex
 
-  constructor (private readonly knexConfig: Knex.Config = config.database) {
+  constructor(private readonly knexConfig: Knex.Config = config.database) {
     super()
+    this.knex = KnexClient(this.knexConfig)
   }
 
   public async initialize () {

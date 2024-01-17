@@ -1,6 +1,5 @@
 import styled from '@emotion/styled'
 import { Button, CopyButton, Loader, Textarea } from '@mantine/core'
-
 import { useOption } from '../core/options/use-option'
 import { type Message } from '../core/chat/types'
 import { share } from '../core/utils'

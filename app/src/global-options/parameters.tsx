@@ -33,6 +33,10 @@ export const parameterOptions: OptionGroup = {
             value: 'gpt-3.5-turbo'
           },
           {
+            label: 'Fine Tuned GPT-3.5 Turbo Tanium',
+            value: 'ft:gpt-3.5-turbo-1106:linkfultz::8irSJZ4G'
+          },
+          {
             label: 'GPT-3.5 Turbo Snapshot (November 6, 2023)',
             value: 'gpt-3.5-turbo-1106'
           },

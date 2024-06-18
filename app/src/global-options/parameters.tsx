@@ -130,7 +130,7 @@ export const parameterOptions: OptionGroup = {
         type: "slider",
         label: "Temperature: " + value.toFixed(1),
         min: 0,
-        max: 1,
+        max: 2,
         step: 0.1,
         description: context.intl.formatMessage({
           defaultMessage:

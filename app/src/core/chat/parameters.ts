@@ -2,7 +2,7 @@ import { defaultModel } from './openai'
 import { type Parameters } from './types'
 
 export const defaultParameters: Parameters = {
-  temperature: 0.5,
+  temperature: 0.7,
   model: defaultModel
 }
 

@@ -116,7 +116,7 @@ export const parameterOptions: OptionGroup = {
     },
     {
       id: "temperature",
-      defaultValue: 0.5,
+      defaultValue: 0.7,
       resettable: true,
       scope: "chat",
       displayOnSettingsScreen: "chat",
@@ -124,11 +124,11 @@ export const parameterOptions: OptionGroup = {
       displayInQuickSettings: {
         name: "Temperature",
         displayByDefault: true,
-        label: (value) => "Temperature: " + value.toFixed(1),
+        label: (value) => "Temperature: " + value.toFixed(2),
       },
       renderProps: (value, options, context) => ({
         type: "slider",
-        label: "Temperature: " + value.toFixed(1),
+        label: "Temperature: " + value.toFixed(2),
         min: 0,
         max: 1,
         step: 0.1,

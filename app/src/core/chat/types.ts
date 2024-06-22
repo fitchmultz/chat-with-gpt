@@ -5,6 +5,7 @@ export interface Parameters {
   apiKey?: string
   initialSystemPrompt?: string
   model: string
+  provider: 'openai' | 'anthropic'
 }
 
 export interface TextContentItem {
@@ -49,6 +50,11 @@ export interface OpenAIMessage {
   content: MessageContent
 }
 
+export interface AnthropicMessage {
+  role: string
+  content: string
+}
+
 export function getTextContentFromOpenAIMessageContent (openAIMessageContent: MessageContent): string {
   if (typeof openAIMessageContent === 'string') {
     // The content is already a string, so return it as is.
@@ -65,7 +71,14 @@ export function getTextContentFromOpenAIMessageContent (openAIMessageContent: Me
   return ''
 }
 
-export function getOpenAIMessageFromMessage (message: Message): OpenAIMessage {
+export function getOpenAIMessageFromMessage(message: Message): OpenAIMessage | AnthropicMessage {
+  if (message.parameters?.provider === 'anthropic') {
+    return {
+      role: message.role,
+      content: message.content
+    };
+  }
+
   const contents: ContentItem[] = []
 
   contents.push({

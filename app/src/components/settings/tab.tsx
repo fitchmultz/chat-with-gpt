@@ -227,6 +227,13 @@ export default function SettingsTab (props: {
     }))
     .filter(({ options, hidden }) => (options.length > 0) && !hidden)
 
+  const [provider, setProvider] = useOption('chat', 'provider')
+  const [model, setModel] = useOption('chat', 'model')
+
+  const handleModelChange = (value: string) => {
+    setModel(value);
+  }
+
   return (
         <Tabs.Panel value={props.name}>
             <Settings>

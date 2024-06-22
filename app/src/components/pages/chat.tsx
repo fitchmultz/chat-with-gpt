@@ -9,6 +9,8 @@ import { backend } from '../../core/backend'
 import { Page } from '../page'
 import { useOption } from '../../core/options/use-option'
 
+import { sendMessage as sendAnthropicMessage } from '../../core/anthropic/message';
+
 const Message = React.lazy(async () => await import(/* webpackPreload: true */ '../message'))
 
 const Messages = styled.div`
@@ -82,6 +84,33 @@ export default function ChatPage (props: any) {
 
   const shouldShowChat = id && context.currentChat.chat && !(messagesToDisplay.length === 0)
 
+  const handleSendMessage = async (message: UserSubmittedMessage) => {
+    try {
+      let response: string;
+      if (message.requestedParameters.provider === 'anthropic') {
+        response = await sendAnthropicMessage(context.currentChat.chat!.messages.toArray(), message.requestedParameters);
+      } else {
+        // Assuming there's an existing function for sending OpenAI messages
+        response = await context.sendMessage(message);
+      }
+  
+      // Add the response to the chat
+      context.addMessage({
+        id: Date.now().toString(),
+        chatID: message.chatID,
+        parentID: message.parentID,
+        timestamp: Date.now(),
+        role: 'assistant',
+        content: response,
+        done: true,
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Handle error (e.g., show error message to user)
+      context.setError('Failed to send message. Please try again.');
+    }
+  }
+
   return <Page id={id || 'landing'}
         headerProps={{
           share: context.isShare,
@@ -102,7 +131,9 @@ export default function ChatPage (props: any) {
               }
             }
           }
-        }}>
+        }}
+        onSendMessage={handleSendMessage}
+        >
         <Suspense fallback={<Messages id="messages">
             <EmptyMessage>
                 <Loader variant="dots" />

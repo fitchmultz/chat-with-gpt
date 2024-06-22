@@ -21,6 +21,11 @@ export interface Config {
       loginRequired?: boolean
     }
 
+    anthropic?: {
+      apiKey?: string
+      loginRequired?: boolean
+    }
+
     elevenlabs?: {
       // The API key required to authenticate with the ElevenLabs service.
       // When provided, signed in users will be able to access ElevenLabs through the server

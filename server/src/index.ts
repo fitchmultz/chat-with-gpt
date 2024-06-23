@@ -15,6 +15,7 @@ import DeleteChatRequestHandler from './endpoints/delete-chat'
 import ElevenLabsTTSProxyRequestHandler from './endpoints/service-proxies/elevenlabs/text-to-speech'
 import ElevenLabsVoicesProxyRequestHandler from './endpoints/service-proxies/elevenlabs/voices'
 import OpenAIProxyRequestHandler from './endpoints/service-proxies/openai'
+import AnthropicProxyRequestHandler from './endpoints/service-proxies/anthropic'
 import SessionRequestHandler from './endpoints/session'
 import ShareRequestHandler from './endpoints/share'
 import type ObjectStore from './object-store/index'
@@ -99,6 +100,10 @@ export default class ChatServer {
 
     if (config.services?.openai?.apiKey) {
       this.app.post('/chatapi/proxies/openai/v1/chat/completions', (req, res) => new OpenAIProxyRequestHandler(this, req, res))
+    }
+
+    if (config.services?.anthropic?.apiKey) {
+      this.app.post('/chatapi/proxies/anthropic/v1/messages', (req, res) => new AnthropicProxyRequestHandler(this, req, res))
     }
 
     if (config.services?.elevenlabs?.apiKey) {

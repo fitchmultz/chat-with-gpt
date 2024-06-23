@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { backend } from '../backend'
 import { type ChatManager } from '..'
-import { type Chat, type Message } from './types'
+import { type Chat, type Message, type Parameters, AnthropicMessage, getAnthropicMessageFromMessage } from './types'
+import { createChatCompletion as createOpenAIChatCompletion, createStreamingChatCompletion as createOpenAIStreamingChatCompletion } from './openai'
+import { createChatCompletion as createAnthropicChatCompletion, createStreamingChatCompletion as createAnthropicStreamingChatCompletion, anthropicModels } from './anthropic'
 
 export interface UseChatResult {
   chat: Chat | null | undefined
@@ -11,7 +13,29 @@ export interface UseChatResult {
   leaf: Message | null | undefined
 }
 
-export function useChat (chatManager: ChatManager, id: string | undefined | null, share = false): UseChatResult {
+function isAnthropicModel(model: string): boolean {
+  return anthropicModels.includes(model)
+}
+
+async function createChatCompletion(messages: Message[], parameters: Parameters): Promise<string> {
+  if (isAnthropicModel(parameters.model)) {
+    const anthropicMessages = messages.map(getAnthropicMessageFromMessage)
+    return createAnthropicChatCompletion(anthropicMessages, parameters)
+  } else {
+    return createOpenAIChatCompletion(messages, parameters)
+  }
+}
+
+async function createStreamingChatCompletion(messages: Message[], parameters: Parameters) {
+  if (isAnthropicModel(parameters.model)) {
+    const anthropicMessages = messages.map(getAnthropicMessageFromMessage)
+    return createAnthropicStreamingChatCompletion(anthropicMessages, parameters)
+  } else {
+    return createOpenAIStreamingChatCompletion(messages, parameters)
+  }
+}
+
+export function useChat(chatManager: ChatManager, id: string | undefined | null, share = false): UseChatResult {
   const [chat, setChat] = useState<Chat | null | undefined>(null)
   const [_, setVersion] = useState(0) // eslint-disable-line @typescript-eslint/no-unused-vars
 

@@ -3,8 +3,10 @@ import { MessageTree } from './message-tree'
 export interface Parameters {
   temperature: number
   apiKey?: string
+  anthropicApiKey?: string
   initialSystemPrompt?: string
   model: string
+  max_tokens: number
 }
 
 export interface TextContentItem {
@@ -49,6 +51,11 @@ export interface OpenAIMessage {
   content: MessageContent
 }
 
+export interface AnthropicMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export function getTextContentFromOpenAIMessageContent (openAIMessageContent: MessageContent): string {
   if (typeof openAIMessageContent === 'string') {
     // The content is already a string, so return it as is.
@@ -85,6 +92,13 @@ export function getOpenAIMessageFromMessage (message: Message): OpenAIMessage {
   return {
     role: message.role,
     content: contents
+  }
+}
+
+export function getAnthropicMessageFromMessage(message: Message): AnthropicMessage {
+  return {
+    role: message.role as 'user' | 'assistant',
+    content: message.content
   }
 }
 

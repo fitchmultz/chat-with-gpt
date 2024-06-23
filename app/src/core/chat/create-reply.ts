@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
-import { createChatCompletion, createStreamingChatCompletion } from './openai'
+import { createChatCompletion as createOpenAIChatCompletion, createStreamingChatCompletion as createOpenAIStreamingChatCompletion } from './openai'
+import { createChatCompletion as createAnthropicChatCompletion, createStreamingChatCompletion as createAnthropicStreamingChatCompletion, isAnthropicModel } from './anthropic'
 import { type PluginContext } from '../plugins/plugin-context'
 import { pluginRunner } from '../plugins/plugin-runner'
 import { type Chat, type Message, type OpenAIMessage, type Parameters, getOpenAIMessageFromMessage, getTextContentFromOpenAIMessageContent } from './types'
@@ -39,10 +40,17 @@ export class ReplyRequest extends EventEmitter {
     },
 
     createChatCompletion: async (messages: OpenAIMessage[], _parameters: Parameters) => {
-      return await createChatCompletion(messages, {
-        ..._parameters,
-        apiKey: this.requestedParameters.apiKey
-      })
+      if (isAnthropicModel(_parameters.model)) {
+        return await createAnthropicChatCompletion(messages, {
+          ..._parameters,
+          anthropicApiKey: this.requestedParameters.anthropicApiKey
+        })
+      } else {
+        return await createOpenAIChatCompletion(messages, {
+          ..._parameters,
+          apiKey: this.requestedParameters.apiKey
+        })
+      }
     },
 
     setChatTitle: async (title: string) => {
@@ -66,34 +74,44 @@ export class ReplyRequest extends EventEmitter {
   public async execute () {
     try {
       this.scheduleTimeout()
-
+  
       await pluginRunner('preprocess-model-input', this.pluginContext, async plugin => {
         const output = await plugin.preprocessModelInput(this.mutatedMessages, this.mutatedParameters)
         this.mutatedMessages = output.messages
         this.mutatedParameters = output.parameters
         this.lastChunkReceivedAt = Date.now()
       })
-
-      const { emitter, cancel } = await createStreamingChatCompletion(this.mutatedMessages, {
-        ...this.mutatedParameters,
-        apiKey: this.requestedParameters.apiKey
-      })
+  
+      let emitter, cancel;
+  
+      if (isAnthropicModel(this.mutatedParameters.model)) {
+        ({ emitter, cancel } = await createAnthropicStreamingChatCompletion(this.mutatedMessages, {
+          ...this.mutatedParameters,
+          anthropicApiKey: this.requestedParameters.anthropicApiKey
+        }));
+      } else {
+        ({ emitter, cancel } = await createOpenAIStreamingChatCompletion(this.mutatedMessages, {
+          ...this.mutatedParameters,
+          apiKey: this.requestedParameters.apiKey
+        }));
+      }
+  
       this.cancelSSE = cancel
-
+  
       const eventIterator = new EventEmitterAsyncIterator<string>(emitter, ['data', 'done', 'error'])
-
+  
       for await (const event of eventIterator) {
         const { eventName, value } = event
-
+  
         switch (eventName) {
           case 'data':
             await this.onData(value)
             break
-
+  
           case 'done':
             await this.onDone()
             break
-
+  
           case 'error':
             if (!this.content || !this.done) {
               await this.onError(value)
@@ -159,10 +177,11 @@ export class ReplyRequest extends EventEmitter {
     this.emit('done')
     clearInterval(this.timer)
     this.cancelSSE?.()
-
-    this.content += `\n\nI'm sorry, I'm having trouble connecting to OpenAI (${error || 'no response from the API'}). Please make sure you've entered your OpenAI API key correctly and try again.`
+  
+    const provider = isAnthropicModel(this.mutatedParameters.model) ? 'Anthropic' : 'OpenAI';
+    this.content += `\n\nI'm sorry, I'm having trouble connecting to ${provider} (${error || 'no response from the API'}). Please make sure you've entered your ${provider} API key correctly and try again.`
     this.content = this.content.trim()
-
+  
     this.yChat.setMessageContent(this.replyID, this.content)
     this.yChat.onMessageDone(this.replyID)
   }

@@ -2,6 +2,7 @@ import { pluginMetadata } from '../core/plugins/metadata'
 import { type Option } from '../core/options/option'
 import { type OptionGroup } from '../core/options/option-group'
 import { openAIOptions } from './openai'
+import { anthropicOptions } from './anthropic'
 import { parameterOptions } from './parameters'
 import { ttsServiceOptions } from './tts-service'
 import { autoScrollOptions, inputOptions, markdownOptions } from './ui'
@@ -9,6 +10,7 @@ import { whisperOptions } from './whisper'
 
 export const globalOptions: OptionGroup[] = [
   openAIOptions,
+  anthropicOptions,
   autoScrollOptions,
   parameterOptions,
   inputOptions,

@@ -4,12 +4,13 @@ import { type IntlShape, useIntl } from 'react-intl'
 import { Backend, type User } from './backend'
 import { ChatManager } from './'
 import { useAppDispatch } from '../store'
-import { openOpenAIApiKeyPanel } from '../store/settings-ui'
+import { openOpenAIApiKeyPanel, openAnthropicApiKeyPanel } from '../store/settings-ui'
 import { type Message, type Parameters } from './chat/types'
 import { useChat, type UseChatResult } from './chat/use-chat'
 import { TTSContextProvider } from './tts/use-tts'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { isProxySupported } from './chat/openai'
+import { isProxySupported as isOpenAIProxySupported } from './chat/openai'
+import { isProxySupported as isAnthropicProxySupported, isAnthropicModel } from './chat/anthropic'
 import { audioContext, resetAudioContext } from './tts/audio-file-player'
 
 export interface Context {
@@ -86,17 +87,28 @@ export function useCreateAppContext (): Context {
       return false
     }
 
-    // const openaiApiKey = store.getState().apiKeys.openAIApiKey;
     const openaiApiKey = chatManager.options.getOption<string>('openai', 'apiKey')
+    const anthropicApiKey = chatManager.options.getOption<string>('anthropic', 'apiKey')
+    const model = chatManager.options.getOption<string>('parameters', 'model', id)
 
-    if (!openaiApiKey && !isProxySupported()) {
-      dispatch(openOpenAIApiKeyPanel())
-      return false
+    if (isAnthropicModel(model)) {
+      if (!anthropicApiKey && !isAnthropicProxySupported()) {
+        dispatch(openAnthropicApiKeyPanel())
+        return false
+      }
+    } else {
+      if (!openaiApiKey && !isOpenAIProxySupported()) {
+        dispatch(openOpenAIApiKeyPanel())
+        return false
+      }
     }
 
     const parameters: Parameters = {
-      model: chatManager.options.getOption<string>('parameters', 'model', id),
-      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
+      model,
+      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+      max_tokens: chatManager.options.getOption<number>('parameters', 'max_tokens', id),
+      apiKey: openaiApiKey,
+      anthropicApiKey: anthropicApiKey
     }
 
     if (id === nextID) {
@@ -118,10 +130,7 @@ export function useCreateAppContext (): Context {
       chatID: id,
       content: message.trim(),
       image_url: imageUrl,
-      requestedParameters: {
-        ...parameters,
-        apiKey: openaiApiKey
-      },
+      requestedParameters: parameters,
       parentID: currentChat.leaf?.id
     })
 
@@ -135,26 +144,34 @@ export function useCreateAppContext (): Context {
       return false
     }
 
-    // const openaiApiKey = store.getState().apiKeys.openAIApiKey;
     const openaiApiKey = chatManager.options.getOption<string>('openai', 'apiKey')
+    const anthropicApiKey = chatManager.options.getOption<string>('anthropic', 'apiKey')
+    const model = chatManager.options.getOption<string>('parameters', 'model', id)
 
-    if (!openaiApiKey && !isProxySupported()) {
-      dispatch(openOpenAIApiKeyPanel())
-      return false
+    if (isAnthropicModel(model)) {
+      if (!anthropicApiKey && !isAnthropicProxySupported()) {
+        dispatch(openAnthropicApiKeyPanel())
+        return false
+      }
+    } else {
+      if (!openaiApiKey && !isOpenAIProxySupported()) {
+        dispatch(openOpenAIApiKeyPanel())
+        return false
+      }
     }
 
     const parameters: Parameters = {
-      model: chatManager.options.getOption<string>('parameters', 'model', id),
-      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
+      model,
+      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+      max_tokens: chatManager.options.getOption<number>('parameters', 'max_tokens', id),
+      apiKey: openaiApiKey,
+      anthropicApiKey: anthropicApiKey
     }
 
-    await chatManager.regenerate(message, {
-      ...parameters,
-      apiKey: openaiApiKey
-    })
+    await chatManager.regenerate(message, parameters)
 
     return true
-  }, [dispatch, isShare])
+  }, [dispatch, id, isShare])
 
   const editMessage = useCallback(async (message: Message, content: string) => {
     resetAudioContext()
@@ -167,17 +184,28 @@ export function useCreateAppContext (): Context {
       return false
     }
 
-    // const openaiApiKey = store.getState().apiKeys.openAIApiKey;
     const openaiApiKey = chatManager.options.getOption<string>('openai', 'apiKey')
+    const anthropicApiKey = chatManager.options.getOption<string>('anthropic', 'apiKey')
+    const model = chatManager.options.getOption<string>('parameters', 'model', id)
 
-    if (!openaiApiKey && !isProxySupported()) {
-      dispatch(openOpenAIApiKeyPanel())
-      return false
+    if (isAnthropicModel(model)) {
+      if (!anthropicApiKey && !isAnthropicProxySupported()) {
+        dispatch(openAnthropicApiKeyPanel())
+        return false
+      }
+    } else {
+      if (!openaiApiKey && !isOpenAIProxySupported()) {
+        dispatch(openOpenAIApiKeyPanel())
+        return false
+      }
     }
 
     const parameters: Parameters = {
-      model: chatManager.options.getOption<string>('parameters', 'model', id),
-      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id)
+      model,
+      temperature: chatManager.options.getOption<number>('parameters', 'temperature', id),
+      max_tokens: chatManager.options.getOption<number>('parameters', 'max_tokens', id),
+      apiKey: openaiApiKey,
+      anthropicApiKey: anthropicApiKey
     }
 
     if (id && chatManager.has(id)) {
@@ -185,10 +213,7 @@ export function useCreateAppContext (): Context {
         chatID: id,
         content: content.trim(),
         image_url: message.image_url,
-        requestedParameters: {
-          ...parameters,
-          apiKey: openaiApiKey
-        },
+        requestedParameters: parameters,
         parentID: message.parentID
       })
     } else {
@@ -197,10 +222,7 @@ export function useCreateAppContext (): Context {
         chatID: id,
         content: content.trim(),
         image_url: message.image_url,
-        requestedParameters: {
-          ...parameters,
-          apiKey: openaiApiKey
-        },
+        requestedParameters: parameters,
         parentID: message.parentID
       })
     }

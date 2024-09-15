@@ -29,14 +29,30 @@ export async function streamingHandler (req: express.Request, res: express.Respo
     })
   })
 
+  let buffer = ''
   eventSource.addEventListener('message', async (event: any) => {
+    buffer += event.data
+  
+    // Check if the buffer contains a complete LaTeX expression
+    if (buffer.includes('$$') || buffer.includes('$')) {
+      try {
+        const chunk = parseResponseChunk(buffer)
+        if (chunk.choices && chunk.choices.length > 0) {
+          completion += chunk.choices[0]?.delta?.content || ''
+          buffer = '' // Clear the buffer after processing
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  
     res.write(`data: ${event.data}\n\n`)
     res.flush()
-
+  
     if (event.data === '[DONE]') {
       res.end()
       eventSource.close()
-
+  
       const totalTokens = countTokensForMessages([
         ...messages,
         {
@@ -45,22 +61,8 @@ export async function streamingHandler (req: express.Request, res: express.Respo
         }
       ])
       const completionTokens = totalTokens - promptTokens
-      // console.log(`prompt tokens: ${promptTokens}, completion tokens: ${completionTokens}, model: ${req.body.model}`);
       return
     }
-
-    try {
-      const chunk = parseResponseChunk(event.data)
-      if (chunk.choices && chunk.choices.length > 0) {
-        completion += chunk.choices[0]?.delta?.content || ''
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  })
-
-  eventSource.addEventListener('error', (event: any) => {
-    res.end()
   })
 
   eventSource.addEventListener('abort', (event: any) => {
@@ -76,8 +78,17 @@ export async function streamingHandler (req: express.Request, res: express.Respo
   })
 }
 
-function parseResponseChunk (buffer: any) {
+function parseResponseChunk(buffer: any) {
   const chunk = buffer.toString().replace('data: ', '').trim()
+
+  // Check if the chunk contains incomplete LaTeX expressions
+  if (chunk.includes('$') && !chunk.includes('$$')) {
+    return {
+      done: false,
+      incomplete: true, // Mark as incomplete
+      choices: []
+    }
+  }
 
   if (chunk === '[DONE]') {
     return {

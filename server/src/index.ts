@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 
 import compression from 'compression'
 import express from 'express'
+import * as expressRateLimit from 'express-rate-limit'
 import { execSync } from 'child_process'
 import fs from 'fs'
 import https from 'https'
@@ -71,24 +72,23 @@ export default class ChatServer {
       filter: (req, res) => !req.path.includes('proxies')
     }))
 
-    const { default: rateLimit } = await import('express-rate-limit') // esm
 
     this.app.get('/chatapi/health', (req, res) => new HealthRequestHandler(this, req, res))
 
     this.app.get('/chatapi/session',
-      rateLimit({ windowMs: 60 * 1000, max: 100 }),
+  expressRateLimit.default({ windowMs: 60 * 1000, max: 100 }),
       (req, res) => new SessionRequestHandler(this, req, res))
 
     this.app.post('/chatapi/y-sync',
-      rateLimit({ windowMs: 60 * 1000, max: 100 }),
+      expressRateLimit.default({ windowMs: 60 * 1000, max: 100 }),
       express.raw({ type: 'application/octet-stream', limit: '10mb' }),
       (req, res) => new SyncRequestHandler(this, req, res))
 
     this.app.get('/chatapi/legacy-sync',
-      rateLimit({ windowMs: 60 * 1000, max: 100 }),
+      expressRateLimit.default({ windowMs: 60 * 1000, max: 100 }),
       (req, res) => new LegacySyncRequestHandler(this, req, res))
 
-    this.app.use(rateLimit({
+    this.app.use(expressRateLimit.default({
       windowMs: config.rateLimit.windowMs,
       max: config.rateLimit.max
     }))

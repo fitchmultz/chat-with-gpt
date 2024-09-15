@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import styled from '@emotion/styled'
 import ReactMarkdown from 'react-markdown'
+import { Components } from 'react-markdown/lib/ast-to-react'
+import katex from 'katex'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
@@ -50,6 +52,10 @@ const ImagePreview = styled.div`
         display: block;
     }
 `
+type ExtendedComponents = Components & {
+    math: React.ComponentType<{ value: string }>
+    inlineMath: React.ComponentType<{ value: string }>
+  }
 
 export interface MarkdownProps {
   content: string
@@ -57,92 +63,117 @@ export interface MarkdownProps {
   katex?: boolean
 }
 
-export function Markdown (props: MarkdownProps) {
-  const intl = useIntl()
+function renderMath(content: string) {
+    return katex.renderToString(content, {
+      throwOnError: false
+    })
+  }
+  
+  export function Markdown(props: MarkdownProps) {
+    const intl = useIntl()
+  
+    const classes = useMemo(() => {
+      const classes = ['prose', 'dark:prose-invert']
+  
+      if (props.className) {
+        classes.push(props.className)
+      }
+  
+      return classes
+    }, [props.className])
+  
+    const elem = useMemo(() => {
+      const remarkPlugins: any[] = [remarkGfm]
+      const rehypePlugins: any[] = []
+  
+      if (props.katex === true) {
+        remarkPlugins.push(remarkMath)
+        rehypePlugins.push(rehypeKatex)
+      }
 
-  const classes = useMemo(() => {
-    const classes = ['prose', 'dark:prose-invert']
-
-    if (props.className) {
-      classes.push(props.className)
-    }
-
-    return classes
-  }, [props.className])
-
-  const elem = useMemo(() => {
-    const remarkPlugins: any[] = [remarkGfm]
-    const rehypePlugins: any[] = []
-
-    if (props.katex === true) {
-      remarkPlugins.push(remarkMath)
-      rehypePlugins.push(rehypeKatex)
-    }
-
-    return <div className={classes.join(' ')}>
-            <ReactMarkdown
-                remarkPlugins={remarkPlugins}
-                rehypePlugins={rehypePlugins}
-                components={{
-                  ol ({ start, children }) {
-                    return <ol start={start ?? 0} style={{ counterReset: `list-item ${((start != null) || 0)}` }}>
-                            {children}
-                        </ol>
-                  },
-                  code ({ node, inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || '')
-                    const code = String(children)
-                    return !inline
-                      ? (<>
-                            <Code>
-                                <Header>
-                                    {code.startsWith('<svg') && code.includes('</svg>') && (
-                                        <Button variant="subtle" size="sm" compact onClick={() => {
-                                          const blob = new Blob([code], { type: 'image/svg+xml' })
-                                          const url = URL.createObjectURL(blob)
-                                          const a = document.createElement('a')
-                                          a.href = url
-                                          a.download = 'image.svg'
-                                          a.click()
-                                        }}>
-                                            <i className="fa fa-download" />
-                                            <span><FormattedMessage defaultMessage="Download SVG" /></span>
-                                        </Button>
-                                    )}
-                                    <CopyButton value={code}>
-                                        {({ copy, copied }) => (
-                                            <Button variant="subtle" size="sm" compact onClick={copy}>
-                                                <i className="fa fa-clipboard" />
-                                                <span>
-                                                    {copied
-                                                      ? <FormattedMessage defaultMessage="Copied" description="Label for copy-to-clipboard button after a successful copy" />
-                                                      : <FormattedMessage defaultMessage="Copy" description="Label for copy-to-clipboard button" />}
-                                                </span>
-                                            </Button>
-                                        )}
-                                    </CopyButton>
-                                </Header>
-                                <SyntaxHighlighter
-                                    children={code}
-                                    style={vscDarkPlus as any}
-                                    language={match?.[1] || 'text'}
-                                    PreTag="div"
-                                    {...props} />
-                            </Code>
-                            {code.startsWith('<svg') && code.includes('</svg>') && (
-                                <ImagePreview>
-                                    <img src={`data:image/svg+xml;base64,${btoa(code)}`} />
-                                </ImagePreview>
-                            )}
-                        </>)
-                      : (
-                            <code className={className} {...props}>
-                                {children}
-                            </code>
-                        )
-                  }
-                }}>{props.content}</ReactMarkdown>
-        </div>
+      return (
+        <div className={classes.join(' ')}>
+        <ReactMarkdown
+          remarkPlugins={remarkPlugins}
+          rehypePlugins={rehypePlugins}
+          components={{
+            math: ({ value }: { value: string }) => <span dangerouslySetInnerHTML={{ __html: renderMath(value) }} />,
+            inlineMath: ({ value }: { value: string }) => <span dangerouslySetInnerHTML={{ __html: renderMath(value) }} />,
+              ol({ start, children }) {
+                return (
+                  <ol start={start ?? 0} style={{ counterReset: `list-item ${((start != null) || 0)}` }}>
+                    {children}
+                  </ol>
+                )
+              },
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '')
+                const code = String(children)
+                return !inline ? (
+                  <>
+                    <Code>
+                      <Header>
+                        {code.startsWith('<svg') && code.includes('</svg>') && (
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            compact
+                            onClick={() => {
+                              const blob = new Blob([code], { type: 'image/svg+xml' })
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = 'image.svg'
+                              a.click()
+                            }}
+                          >
+                            <i className="fa fa-download" />
+                            <span>
+                              <FormattedMessage defaultMessage="Download SVG" />
+                            </span>
+                          </Button>
+                        )}
+                        <CopyButton value={code}>
+                          {({ copy, copied }) => (
+                            <Button variant="subtle" size="sm" compact onClick={copy}>
+                              <i className="fa fa-clipboard" />
+                              <span>
+                                {copied ? (
+                                  <FormattedMessage defaultMessage="Copied" />
+                                ) : (
+                                  <FormattedMessage defaultMessage="Copy" />
+                                )}
+                            </span>
+                          </Button>
+                        )}
+                      </CopyButton>
+                    </Header>
+                    <SyntaxHighlighter
+                      children={code}
+                      style={vscDarkPlus as any}
+                      language={match?.[1] || 'text'}
+                      PreTag="div"
+                      {...props}
+                    />
+                  </Code>
+                  {code.startsWith('<svg') && code.includes('</svg>') && (
+                    <ImagePreview>
+                      <img src={`data:image/svg+xml;base64,${btoa(code)}`} />
+                    </ImagePreview>
+                  )}
+                </>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              )
+            }
+          } as ExtendedComponents}
+        >
+          {props.content}
+        </ReactMarkdown>
+      </div>
+    )
   }, [props.content, props.katex, classes, intl])
 
   return elem

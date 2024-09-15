@@ -195,5 +195,8 @@
   "zFt1cV": {
     "defaultMessage": "Find your API key here.",
     "description": "Label for the link that takes the user to the page on the OpenAI website where they can find their API key."
+  },
+  "4l6vz1": {
+    "defaultMessage": "Copy"
   }
 }

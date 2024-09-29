@@ -30,7 +30,7 @@
     "lib0": "^0.2.93",
     "minipass-fetch": "^3.0.4",
     "nanoid": "^5.0.7",
-    "openai": "^4.60.0",
+    "openai": "^4.65.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "sqlite3": "^5.1.7",

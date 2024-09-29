@@ -1,0 +1,171 @@
+.
+├── Dockerfile
+├── LICENSE
+├── README.md
+├── app
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── lang
+│   │   │   └── en-us.json
+│   │   ├── logo192.png
+│   │   ├── logo512.png
+│   │   ├── prose.css
+│   │   └── robots.txt
+│   ├── src
+│   │   ├── components
+│   │   │   ├── auth-modals.tsx
+│   │   │   ├── header.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── markdown.tsx
+│   │   │   ├── message.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── pages
+│   │   │   │   ├── chat.tsx
+│   │   │   │   └── landing.tsx
+│   │   │   ├── pwa-notifications.tsx
+│   │   │   ├── quick-settings.tsx
+│   │   │   ├── settings
+│   │   │   │   ├── chat.tsx
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── option.tsx
+│   │   │   │   ├── speech.tsx
+│   │   │   │   ├── tab.tsx
+│   │   │   │   ├── ui-preferences.tsx
+│   │   │   │   └── user.tsx
+│   │   │   ├── sidebar
+│   │   │   │   ├── index.tsx
+│   │   │   │   └── recent-chats.tsx
+│   │   │   ├── tts-button.tsx
+│   │   │   └── tts-controls.tsx
+│   │   ├── core
+│   │   │   ├── backend.ts
+│   │   │   ├── chat
+│   │   │   │   ├── chat-persistance.ts
+│   │   │   │   ├── create-reply.ts
+│   │   │   │   ├── message-tree.ts
+│   │   │   │   ├── openai.ts
+│   │   │   │   ├── parameters.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   ├── use-chat.ts
+│   │   │   │   └── y-chat.ts
+│   │   │   ├── context.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── options
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── option-group.tsx
+│   │   │   │   ├── option.ts
+│   │   │   │   ├── render-props.ts
+│   │   │   │   └── use-option.ts
+│   │   │   ├── plugins
+│   │   │   │   ├── command.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── metadata.ts
+│   │   │   │   ├── plugin-context.ts
+│   │   │   │   ├── plugin-description.ts
+│   │   │   │   └── plugin-runner.ts
+│   │   │   ├── search.ts
+│   │   │   ├── speech-recognition-types.ts
+│   │   │   ├── tokenizer
+│   │   │   │   ├── bpe.ts
+│   │   │   │   ├── chat-history-trimmer.ts
+│   │   │   │   ├── cl100k_base.json
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── worker.ts
+│   │   │   │   └── wrapper.ts
+│   │   │   ├── tts
+│   │   │   │   ├── audio-file-player.ts
+│   │   │   │   ├── direct-tts-player.ts
+│   │   │   │   ├── direct-tts-plugin.ts
+│   │   │   │   ├── tts-plugin.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── use-tts.tsx
+│   │   │   └── utils
+│   │   │       ├── async-loop.ts
+│   │   │       ├── event-emitter-async-iterator.ts
+│   │   │       ├── idb.ts
+│   │   │       ├── index.ts
+│   │   │       └── sse.ts
+│   │   ├── global-options
+│   │   │   ├── index.tsx
+│   │   │   ├── openai.tsx
+│   │   │   ├── parameters.tsx
+│   │   │   ├── tts-service.tsx
+│   │   │   ├── ui.tsx
+│   │   │   └── whisper.tsx
+│   │   ├── index.css
+│   │   ├── index.tsx
+│   │   ├── menus.ts
+│   │   ├── plugins
+│   │   │   ├── index.ts
+│   │   │   ├── system-prompt.tsx
+│   │   │   ├── titles.ts
+│   │   │   └── trimmer.ts
+│   │   ├── spotlight.tsx
+│   │   ├── store
+│   │   │   ├── index.ts
+│   │   │   ├── message.ts
+│   │   │   ├── settings-ui.ts
+│   │   │   ├── sidebar.ts
+│   │   │   └── ui.ts
+│   │   ├── stub.js
+│   │   ├── tts-plugins
+│   │   │   ├── elevenlabs-defaults.ts
+│   │   │   ├── elevenlabs.tsx
+│   │   │   └── web-speech.ts
+│   │   ├── values.ts
+│   │   └── vite-env.d.ts
+│   ├── tsconfig.json
+│   └── vite.config.js
+├── docker-compose.yml
+├── server
+│   ├── data
+│   │   ├── chat.sqlite
+│   │   └── object-store.sqlite
+│   ├── generate-self-signed-certificate.sh
+│   ├── jest.config.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── sessions.db
+│   ├── src
+│   │   ├── auth0.ts
+│   │   ├── config.ts
+│   │   ├── database
+│   │   │   ├── index.ts
+│   │   │   └── knex.ts
+│   │   ├── endpoints
+│   │   │   ├── base.ts
+│   │   │   ├── delete-chat.ts
+│   │   │   ├── get-share.ts
+│   │   │   ├── health.ts
+│   │   │   ├── service-proxies
+│   │   │   │   ├── elevenlabs
+│   │   │   │   │   ├── text-to-speech.ts
+│   │   │   │   │   └── voices.ts
+│   │   │   │   └── openai
+│   │   │   │       ├── basic.ts
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── message.ts
+│   │   │   │       ├── streaming.ts
+│   │   │   │       └── tokenizer
+│   │   │   │           ├── bpe.ts
+│   │   │   │           ├── cl100k_base.json
+│   │   │   │           └── index.ts
+│   │   │   ├── session.ts
+│   │   │   ├── share.ts
+│   │   │   ├── sync-legacy.ts
+│   │   │   └── sync.ts
+│   │   ├── index.ts
+│   │   ├── object-store
+│   │   │   ├── index.ts
+│   │   │   ├── s3.ts
+│   │   │   └── sqlite.ts
+│   │   ├── passport.ts
+│   │   └── utils.ts
+│   └── tsconfig.json
+├── tree.sh
+└── tree.txt
+
+30 directories, 139 files

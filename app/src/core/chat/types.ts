@@ -45,8 +45,9 @@ export interface UserSubmittedMessage {
 }
 
 export interface OpenAIMessage {
-  role: string
-  content: MessageContent
+  role: string;
+  content: string;
+  beta?: boolean; // Add this line
 }
 
 export function getTextContentFromOpenAIMessageContent (openAIMessageContent: MessageContent): string {

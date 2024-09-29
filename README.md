@@ -4,7 +4,7 @@ Chat with GPT is an open-source ChatGPT app with extra features and more ways to
 
 This is a fork of [cogent-apps](https://github.com/cogentapps/chat-with-gpt) that is no longer maintained.
 
-I have kept this updated with the latest 01-preview models as of September 29, 2024.
+I have kept this updated with the latest o1-preview models as of September 29, 2024.
 
 I am attempting to keep all packages and dependencies updated to the most recent version for security and compatibility.
 

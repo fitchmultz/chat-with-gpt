@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import { Configuration, OpenAI } from "openai";
+import OpenAI from "openai";
 import SSE from "../utils/sse";
 import { type OpenAIMessage, type Parameters } from "./types";
 import { backend } from "../backend";
@@ -32,18 +32,14 @@ export interface OpenAIResponseChunk {
   model?: string;
 }
 
-function parseResponseChunk(buffer: any): OpenAIResponseChunk[] {
-  const chunk = buffer.toString().replace("data: ", "").trim();
+function parseResponseChunk(buffer: string): OpenAIResponseChunk[] {
+  const chunk = buffer.replace("data: ", "").trim();
 
   if (chunk === "[DONE]") {
     return [{ done: true }];
   }
 
-  // Uncomment for deugging potential chunk issues
-  // console.log(chunk);
-
   try {
-    // Directly attempt to parse the chunk as a valid JSON object.
     const parsed = JSON.parse(chunk);
     return [
       {
@@ -54,12 +50,10 @@ function parseResponseChunk(buffer: any): OpenAIResponseChunk[] {
       },
     ];
   } catch (e) {
-    // If parsing fails, attempt to handle concatenated JSON objects.
     try {
-      // Separate concatenated JSON objects and parse them as an array.
       const modifiedChunk = "[" + chunk.replace(/}\s*{/g, "},{") + "]";
       const parsedArray = JSON.parse(modifiedChunk);
-      return parsedArray.map((parsed) => ({
+      return parsedArray.map((parsed: any) => ({
         id: parsed.id,
         done: false,
         choices: parsed.choices,
@@ -67,7 +61,6 @@ function parseResponseChunk(buffer: any): OpenAIResponseChunk[] {
       }));
     } catch (error) {
       console.error("Error parsing modified JSON:", error);
-      // Return an indication of an error or an empty array as appropriate.
       return [{ done: true }];
     }
   }
@@ -93,10 +86,13 @@ export async function createChatCompletion(
     throw new Error("No API key provided");
   }
 
-  const payload = isBetaModel(parameters.model)
+  const payload: any = isBetaModel(parameters.model)
     ? {
         model: parameters.model,
-        messages: messages.map(({ role, content }) => ({ role, content })),
+        messages: messages.map(({ role, content, beta }) => ({ 
+          role, 
+          content: beta ? JSON.stringify(content) : content 
+        })),
       }
     : {
         model: parameters.model,
@@ -104,7 +100,6 @@ export async function createChatCompletion(
         temperature: parameters.temperature,
       };
 
-  // The GPT-4V model preview requires max tokens to be set
   if (parameters.model === "gpt-4-vision-preview") {
     payload.max_completion_tokens = 4096;
   }
@@ -129,7 +124,6 @@ export async function createStreamingChatCompletion(
   parameters: Parameters
 ) {
   if (isBetaModel(parameters.model)) {
-    // For beta models, fall back to non-streaming completion
     const response = await createChatCompletion(messages, parameters);
     const emitter = new EventEmitter();
     setTimeout(() => {
@@ -150,14 +144,13 @@ export async function createStreamingChatCompletion(
     throw new Error("No API key provided");
   }
 
-  const payload = {
+  const payload: any = {
     model: parameters.model,
     messages,
     temperature: parameters.temperature,
     stream: true,
   };
 
-  // The GPT-4V model preview requires max tokens to be set
   if (parameters.model === "gpt-4-vision-preview") {
     payload.max_completion_tokens = 4096;
   }

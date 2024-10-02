@@ -1,114 +1,115 @@
-import { MessageTree } from './message-tree'
+import { MessageTree } from "./message-tree";
 
 export interface Parameters {
-  temperature: number
-  apiKey?: string
-  initialSystemPrompt?: string
-  model: string
+  temperature: number;
+  apiKey?: string;
+  initialSystemPrompt?: string;
+  model: string;
 }
 
 export interface TextContentItem {
-  type: 'text'
-  text: string
+  type: "text";
+  text: string;
 }
 
 export interface ImageContentItem {
-  type: 'image_url'
+  type: "image_url";
   image_url: {
-    url: string
-  }
+    url: string;
+  };
 }
 
-export type ContentItem = TextContentItem | ImageContentItem
+export type ContentItem = TextContentItem | ImageContentItem;
 
-export type MessageContent = string | ContentItem[]
+export type MessageContent = string | ContentItem[];
 
 export interface Message {
-  id: string
-  chatID: string
-  parentID?: string
-  timestamp: number
-  role: string
-  model?: string
-  content: string
-  image_url?: string
-  parameters?: Parameters
-  done?: boolean
+  id: string;
+  chatID: string;
+  parentID?: string;
+  timestamp: number;
+  role: string;
+  model?: string;
+  content: string;
+  image_url?: string;
+  parameters?: Parameters;
+  done?: boolean;
 }
 
 export interface UserSubmittedMessage {
-  chatID: string
-  parentID?: string
-  content: string
-  image_url?: string
-  requestedParameters: Parameters
+  chatID: string;
+  parentID?: string;
+  content: string;
+  image_url?: string;
+  requestedParameters: Parameters;
 }
 
 export interface OpenAIMessage {
   role: string;
-  content: string;
-  beta?: boolean; // Add this line
+  content: MessageContent;
+  beta?: boolean;
 }
 
-export function getTextContentFromOpenAIMessageContent (openAIMessageContent: MessageContent): string {
-  if (typeof openAIMessageContent === 'string') {
-    // The content is already a string, so return it as is.
-    return openAIMessageContent
-  } else if (Array.isArray(openAIMessageContent) && openAIMessageContent.length > 0) {
-    // The content is an array, so return the text field of the first item in the array.
-    // Note: The first item will always be a text field, and following items may be images.
-    const firstItem = openAIMessageContent[0]
-    if ('text' in firstItem) {
-      return firstItem.text
+export function getTextContentFromOpenAIMessageContent(
+  openAIMessageContent: MessageContent
+): string {
+  if (typeof openAIMessageContent === "string") {
+    return openAIMessageContent;
+  } else if (
+    Array.isArray(openAIMessageContent) &&
+    openAIMessageContent.length > 0
+  ) {
+    const firstItem = openAIMessageContent[0];
+    if ("text" in firstItem) {
+      return firstItem.text;
     }
   }
-  // If the content is neither a string nor a valid array, return an empty string or handle as needed.
-  return ''
+  return "";
 }
 
-export function getOpenAIMessageFromMessage (message: Message): OpenAIMessage {
-  const contents: ContentItem[] = []
-
-  contents.push({
-    type: 'text',
-    text: message.content
-  })
+export function getOpenAIMessageFromMessage(message: Message): OpenAIMessage {
+  const contents: ContentItem[] = [
+    {
+      type: "text",
+      text: message.content,
+    },
+  ];
 
   if (message.image_url) {
     contents.push({
-      type: 'image_url',
+      type: "image_url",
       image_url: {
-        url: message.image_url
-      }
-    })
+        url: message.image_url,
+      },
+    });
   }
 
   return {
     role: message.role,
-    content: contents
-  }
+    content: contents.length === 1 ? contents[0].text : contents,
+  };
 }
 
 export interface Chat {
-  id: string
-  messages: MessageTree
-  metadata?: Record<string, any>
-  pluginOptions?: Record<string, any>
-  title?: string | null
-  created: number
-  updated: number
-  deleted?: boolean
+  id: string;
+  messages: MessageTree;
+  metadata?: Record<string, any>;
+  pluginOptions?: Record<string, any>;
+  title?: string | null;
+  created: number;
+  updated: number;
+  deleted?: boolean;
 }
 
-export function serializeChat (chat: Chat): string {
+export function serializeChat(chat: Chat): string {
   return JSON.stringify({
     ...chat,
-    messages: chat.messages.serialize()
-  })
+    messages: chat.messages.serialize(),
+  });
 }
 
-export function deserializeChat (serialized: string) {
-  const chat = JSON.parse(serialized)
-  chat.messages = new MessageTree(chat.messages)
-  return chat as Chat
+export function deserializeChat(serialized: string): Chat {
+  const chat = JSON.parse(serialized);
+  chat.messages = new MessageTree(chat.messages);
+  return chat as Chat;
 }

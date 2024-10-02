@@ -61,28 +61,25 @@ export class SystemPromptPlugin extends Plugin<SystemPromptPluginOptions> {
     messages: OpenAIMessage[],
     parameters: Parameters
   ): Promise<{ messages: OpenAIMessage[]; parameters: Parameters }> {
-    if (isBetaModel(parameters.model)) {
-      // For beta models, we need to incorporate the system prompt into the first user message
-      const systemPrompt = (
-        this.options?.systemPrompt || defaultSystemPrompt
-      ).replace("{{ datetime }}", new Date().toLocaleString());
+    const systemPrompt = (
+      this.options?.systemPrompt || defaultSystemPrompt
+    ).replace("{{ datetime }}", new Date().toLocaleString());
 
-      const output = messages
-        .map((message, index) => {
-          if (index === 0 && message.role === "user") {
-            return {
-              ...message,
-              content: `${systemPrompt}\n\nUser: ${message.content}`,
-            };
-          }
-          return message;
-        })
-        .filter(
-          (message) => message.role === "user" || message.role === "assistant"
-        );
+    if (isBetaModel(parameters.model)) {
+      // For beta models, incorporate the system prompt into the first user message
+      const output = messages.map((message, index) => {
+        if (index === 0 && message.role === "user") {
+          return {
+            ...message,
+            content: `${systemPrompt}\n\nUser: ${message.content}`,
+            beta: true,
+          };
+        }
+        return message;
+      });
 
       // Adjust parameters for beta model limitations
-      const betaParameters = {
+      const betaParameters: Parameters = {
         ...parameters,
         temperature: 1,
         top_p: 1,
@@ -99,10 +96,7 @@ export class SystemPromptPlugin extends Plugin<SystemPromptPluginOptions> {
       const output = [
         {
           role: "system",
-          content: (this.options?.systemPrompt || defaultSystemPrompt).replace(
-            "{{ datetime }}",
-            new Date().toLocaleString()
-          ),
+          content: systemPrompt,
         },
         ...messages,
       ];
